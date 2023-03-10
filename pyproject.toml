@@ -5,3 +5,5 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ape-huff"
 version = "0.1.0"
+dependencies = ["eth-ape", "py-huffc"]
+optional-dependencies = {dev = ["black", "build", "flake8", "isort", "pre-commit", "twine"]}
