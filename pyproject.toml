@@ -5,8 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ape-huff"
 version = "0.1.0"
+description = "Huff compiler plugin for the eth-ape development framework"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "0xcefa1090d"}]
 dependencies = ["eth-ape", "py-huffc"]
 optional-dependencies = {dev = ["black", "build", "flake8", "isort", "pre-commit", "twine"]}
+
+[project.urls]
+Homepage = "https://github.com/0xcefa1090d/ape-huff"
 
 [tool.black]
 line-length = 100
