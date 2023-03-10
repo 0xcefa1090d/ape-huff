@@ -25,10 +25,12 @@ class HuffCompiler(CompilerAPI):
     @cached_property
     def version(self):
         with huffc.VersionManager() as hvm:
-            version = self.config.version or max(hvm.fetch_remote_versions())
+            version = str(self.config.version or max(hvm.fetch_remote_versions()))
 
             if hvm.get_executable(version) is None:
-                hvm.install(self.version)
+                hvm.install(version)
+
+            return version
 
     def get_versions(self, all_paths):
         with huffc.VersionManager() as hvm:
