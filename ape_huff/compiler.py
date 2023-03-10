@@ -59,14 +59,14 @@ class HuffCompiler(CompilerAPI):
 
         for file, artifact in artifacts.items():
             artifact["contractName"] = Path(file).stem
-            artifact["sourceId"] = Path.cwd().joinpath(file).as_posix()
+            artifact["sourceId"] = Path.cwd().joinpath(file).relative_to(base_path).as_posix()
             artifact["deploymentBytecode"] = {"bytecode": artifact["bytecode"]}
             artifact["runtimeBytecode"] = {"bytecode": artifact["runtime"]}
             artifact["abi"] = format(artifact["abi"])
 
         return [ContractType.parse_obj(artifact) for artifact in artifacts.values()]
 
-    def get_imports(self, contract_filepaths, base_path=None):
+    def get_imports(self, contract_filepaths, base_path):
         artifacts = {}
         for path in [file.relative_to(Path.cwd()) for file in contract_filepaths]:
             with contextlib.suppress(subprocess.CalledProcessError):
@@ -78,10 +78,15 @@ class HuffCompiler(CompilerAPI):
                 if dependency["dependencies"]:
                     result.extend(collect(dependency["dependencies"]))
                 else:
-                    result.append(Path.cwd().joinpath(dependency["path"]).as_posix())
+                    result.append(
+                        Path.cwd().joinpath(dependency["path"]).relative_to(base_path).as_posix()
+                    )
             return result
 
         return {
-            Path.cwd().joinpath(file).as_posix(): sorted(collect(artifact["file"]["dependencies"]))
+            Path.cwd()
+            .joinpath(file)
+            .relative_to(base_path)
+            .as_posix(): sorted(collect(artifact["file"]["dependencies"]))
             for file, artifact in artifacts.items()
         }
