@@ -6,6 +6,7 @@ from pathlib import Path
 
 import huffc
 from ape.api import CompilerAPI, PluginConfig
+from ethpm_types import ContractType
 
 
 class HuffConfig(PluginConfig):
@@ -38,6 +39,32 @@ class HuffCompiler(CompilerAPI):
 
     def get_version_map(self, contract_filepaths, base_path=None):
         return {self.version: set(contract_filepaths)}
+
+    def compile(self, contract_filepaths, base_path=None):
+        artifacts = {}
+        for path in [file.relative_to(Path.cwd()) for file in contract_filepaths]:
+            with contextlib.suppress(subprocess.CalledProcessError):
+                artifacts.update(huffc.compile([path], version=self.version))
+
+        def format(abi):
+            result = []
+
+            for typ in ("function", "event"):
+                result.extend([{"type": typ, **val} for val in abi[f"{typ}s"].values()])
+
+            if init := abi.get("constructor"):
+                result.append({"type": "constructor", **init})
+
+            return result
+
+        for file, artifact in artifacts.items():
+            artifact["contractName"] = Path(file).stem
+            artifact["sourceId"] = Path.cwd().joinpath(file).as_posix()
+            artifact["deploymentBytecode"] = {"bytecode": artifact["bytecode"]}
+            artifact["runtimeBytecode"] = {"bytecode": artifact["runtime"]}
+            artifact["abi"] = format(artifact["abi"])
+
+        return [ContractType.parse_obj(artifact) for artifact in artifacts.values()]
 
     def get_imports(self, contract_filepaths, base_path=None):
         artifacts = {}
