@@ -1,5 +1,8 @@
+import contextlib
+import subprocess
 from collections import defaultdict
 from functools import cached_property
+from pathlib import Path
 
 import huffc
 from ape.api import CompilerAPI, PluginConfig
@@ -35,3 +38,23 @@ class HuffCompiler(CompilerAPI):
 
     def get_version_map(self, contract_filepaths, base_path=None):
         return {self.version: set(contract_filepaths)}
+
+    def get_imports(self, contract_filepaths, base_path=None):
+        artifacts = {}
+        for path in [file.relative_to(Path.cwd()) for file in contract_filepaths]:
+            with contextlib.suppress(subprocess.CalledProcessError):
+                artifacts.update(huffc.compile([path], version=self.version))
+
+        def collect(dependencies):
+            result = []
+            for dependency in dependencies:
+                if dependency["dependencies"]:
+                    result.extend(collect(dependency["dependencies"]))
+                else:
+                    result.append(Path.cwd().joinpath(dependency["path"]).as_posix())
+            return result
+
+        return {
+            Path.cwd().joinpath(file).as_posix(): sorted(collect(artifact["file"]["dependencies"]))
+            for file, artifact in artifacts.items()
+        }
