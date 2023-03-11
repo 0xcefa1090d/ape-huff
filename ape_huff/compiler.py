@@ -48,14 +48,65 @@ class HuffCompiler(CompilerAPI):
             with contextlib.suppress(subprocess.CalledProcessError):
                 artifacts.update(huffc.compile([path], version=self.version))
 
+        def kind_to_type(kind):
+            match kind:
+                case "Address" | "Bytes" | "Bool" | "String":
+                    return kind.lower()
+                case {"FixedBytes": size}:
+                    return f"bytes{size}"
+                case {"Uint": _} | {"Int": _}:
+                    typ, size = kind.popitem()
+                    return f"{typ.lower()}{size}"
+                case {"Array": [k, size]}:
+                    suffix = "".join([f"[{s or ''}]" for s in size])
+                    return f"{kind_to_type(k)}" + suffix
+                case _:
+                    raise Exception("Unknown type.")
+
         def format(abi):
             result = []
 
-            for typ in ("function", "event"):
-                result.extend([{"type": typ, **val} for val in abi[f"{typ}s"].values()])
+            for typ in ("constructor", "fallback", "receive"):
+                if not (item := abi[typ]):
+                    continue
 
-            if init := abi.get("constructor"):
-                result.append({"type": "constructor", **init})
+                result += [
+                    {
+                        "type": typ,
+                        "inputs": [
+                            {"name": inp["name"], "type": kind_to_type(inp["kind"])}
+                            for inp in item.get("inputs", [])
+                        ],
+                        "stateMutability": item.get("state_mutability", "payable"),
+                    }
+                ]
+
+            for item in abi["functions"].values():
+                item["type"] = "function"
+
+                item["stateMutability"] = item["state_mutability"].lower()
+                item["inputs"] = [
+                    {"name": inp["name"], "type": kind_to_type(inp["kind"])}
+                    for inp in item["inputs"]
+                ]
+                item["outputs"] = [
+                    {"name": inp["name"], "type": kind_to_type(inp["kind"])}
+                    for inp in item["outputs"]
+                ]
+                result.append(item)
+
+            for item in abi["events"].values():
+                item["type"] = "event"
+
+                item["inputs"] = [
+                    {
+                        "name": inp["name"],
+                        "type": kind_to_type(inp["kind"]),
+                        "indexed": inp["indexed"],
+                    }
+                    for inp in item["inputs"]
+                ]
+                result.append(item)
 
             return result
 
