@@ -42,7 +42,7 @@ class HuffCompiler(CompilerAPI):
     def get_version_map(self, contract_filepaths, base_path=None):
         return {self.version: set(contract_filepaths)}
 
-    def compile(self, contract_filepaths, base_path=None):
+    def compile(self, contract_filepaths, base_path):
         artifacts = {}
         for path in [file.relative_to(Path.cwd()) for file in contract_filepaths]:
             with contextlib.suppress(subprocess.CalledProcessError):
