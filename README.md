@@ -15,7 +15,7 @@ $ pip install ape-huff
 
 ## Usage
 
-To use the `ape-huff` plugin simply include huff contracts (files with the `.huff` extension) in your projects `contracts/` directory.
+To use the `ape-huff` plugin simply include huff contracts (files with the `.huff` extension) in your project's `contracts/` directory.
 
 ### Selecting a Version
 
