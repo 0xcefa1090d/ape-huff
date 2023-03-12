@@ -6,6 +6,7 @@ from pathlib import Path
 
 import huffc
 from ape.api import CompilerAPI, PluginConfig
+from ape.exceptions import CompilerError
 from ethpm_types import ContractType
 
 
@@ -45,8 +46,12 @@ class HuffCompiler(CompilerAPI):
     def compile(self, contract_filepaths, base_path):
         artifacts = {}
         for path in [file.relative_to(Path.cwd()) for file in contract_filepaths]:
-            with contextlib.suppress(subprocess.CalledProcessError):
+            try:
                 artifacts.update(huffc.compile([path], version=self.version))
+            except subprocess.CalledProcessError as exc:
+                msg = exc.stderr.decode().split("\n", 1)[-1]
+                if 'Error: Missing Macro Definition For "MAIN"' not in msg:
+                    raise CompilerError(msg)
 
         def kind_to_type(kind):
             match kind:
