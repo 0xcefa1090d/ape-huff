@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2023-03-11
+
+### Fixed
+
+- Raise CompilerError when huffc can't compile a non-abstract contract.
+
 ## [0.1.1] - 2023-03-11
 
 ### Added
@@ -18,5 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix ABI formatting in HuffCompiler's compile method to handle huffc's malformed ABI output.
 - Remove default value for base_path parameter in HuffCompiler's compile method.
 
-[unreleased]: https://github.com/0xcefa1090d/ape-huff/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/0xcefa1090d/ape-huff/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/0xcefa1090d/ape-huff/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/0xcefa1090d/ape-huff/compare/v0.1.0...v0.1.1
